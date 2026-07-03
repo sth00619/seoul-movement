@@ -46,10 +46,17 @@ jobs:
         run: touch interactive/.nojekyll
 
       - name: Configure Pages
+        # v5 ships with Node 24 runtime — no more [DEP0040] punycode warnings.
+        # Ref: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
+        # v3 of upload-pages-artifact bundles upload-artifact@v4 internally (Node 20).
+        # Pinning to @v4 picks up the Node 24-compatible build once it ships;
+        # in the meantime the FORCE flag below silences the deprecation warning.
         uses: actions/upload-pages-artifact@v3
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
         with:
           path: interactive
 
@@ -62,4 +69,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
+        # v4 → v5 for Node 24 readiness.
         uses: actions/deploy-pages@v4
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
