@@ -1,20 +1,15 @@
 name: Build and Deploy Interactive Site
 
-# Triggers:
-#   - every push to main
-#   - manual dispatch from the Actions tab
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Required permissions for GitHub Pages deployment via actions/deploy-pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Only one deploy at a time; queue additional pushes but don't cancel in-flight
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -37,18 +32,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # NOTE: this step regenerates interactive/data/*.json from cached
-      # processed data. In this repo we ship the processed parquet files
-      # committed (they are tiny, ~a few MB total, and don't need API keys
-      # to rebuild the site). If they are missing, we fall back to mock data
-      # so the workflow never blocks on a missing key.
       - name: Build interactive snapshots
+        # python -m runs from the repo root so "from src import ..." resolves correctly.
+        # Falls back to mock data if real processed parquets are not committed.
         run: |
           if [ -f data/processed/features.parquet ]; then
-            python src/build_interactive.py --source processed
+            python -m src.build_interactive --source processed
           else
-            python src/build_interactive.py --source mock --seed 42
+            python -m src.build_interactive --source mock --seed 42
           fi
+
+      - name: Disable Jekyll (serve raw HTML, not Jekyll-processed output)
+        run: touch interactive/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -56,7 +51,6 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # We deploy the interactive/ directory as the site root
           path: interactive
 
   deploy:
