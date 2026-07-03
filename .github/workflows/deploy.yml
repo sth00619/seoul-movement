@@ -6,10 +6,6 @@ name: Build and Deploy Interactive Site
 on:
   push:
     branches: [main]
-    paths:
-      - "interactive/**"
-      - "src/build_interactive.py"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 # Required permissions for GitHub Pages deployment via actions/deploy-pages
