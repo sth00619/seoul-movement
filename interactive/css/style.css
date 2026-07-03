@@ -1,0 +1,405 @@
+/* -----------------------------------------------------------------------
+   Reading Seoul Through Its Movement — Interactive Demo
+   Dossier aesthetic: warm dark base, manila tan, stamp red,
+   Fraunces / Inter / JetBrains Mono, sharp corners.
+   ----------------------------------------------------------------------- */
+
+:root {
+  /* Palette (mirrors SONG Files portfolio site) */
+  --bg-base:      #1E1B18;
+  --bg-panel:    #262320;
+  --bg-panel-hi:#2E2A26;
+  --tan:            #C8B89A;
+  --tan-soft:      #A89A80;
+  --manila:      #D6C9A8;
+  --stamp:        #C1272D;
+  --gold:          #D4A017;
+  --steel:        #4A6FA5;
+  --ink:            #F4F0E6;
+  --ink-soft:    #B8B0A3;
+  --line:          #3C3833;
+  --line-strong: #5A544D;
+
+  /* Typography */
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    "JetBrains Mono", "Menlo", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* ============================================================
+   Header
+============================================================ */
+.site-header {
+  border: 1px solid var(--line-strong);
+  border-left: 4px solid var(--stamp);
+  background: var(--bg-panel);
+  padding: 20px 28px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: end;
+}
+
+.brand-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--stamp);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--manila);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.brand-sub {
+  color: var(--ink-soft);
+  font-size: 14px;
+  max-width: 640px;
+}
+
+.brand-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.8;
+  text-align: right;
+}
+
+.meta-label { color: var(--tan-soft); }
+.meta-value { color: var(--manila); }
+
+/* ============================================================
+   Main 3-pane grid
+============================================================ */
+.stage-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.7fr 1.4fr;
+  gap: 18px;
+  min-height: 640px;
+}
+
+.pane {
+  background: var(--bg-panel);
+  border: 1px solid var(--line-strong);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pane-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-panel-hi);
+}
+
+.pane-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--manila);
+  letter-spacing: 0.02em;
+}
+
+.pane-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border: 1px solid var(--stamp);
+  color: var(--stamp);
+  background: transparent;
+}
+
+.pane-body {
+  padding: 16px 20px;
+  overflow: auto;
+  flex: 1;
+}
+
+.pane-body-viz {
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-panel-hi);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.pane-footer-hint { justify-content: center; }
+
+.hint code {
+  background: var(--bg-base);
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  color: var(--tan);
+}
+
+/* ============================================================
+   Left pane — data table
+============================================================ */
+.data-meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--tan-soft);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--bg-base);
+  border-left: 2px solid var(--tan);
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 480px;
+  border: 1px solid var(--line);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+.data-table thead th {
+  background: var(--bg-panel-hi);
+  color: var(--tan);
+  font-weight: 500;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  padding: 6px 10px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(200, 184, 154, 0.05);
+}
+
+.data-table tbody tr.updated {
+  animation: cellFlash 800ms ease-out;
+}
+
+@keyframes cellFlash {
+  0%   { background: rgba(212, 160, 23, 0.35); }
+  100% { background: transparent; }
+}
+
+/* ============================================================
+   Middle pane — pipeline steps
+============================================================ */
+.pipeline-steps {
+  list-style: none;
+  padding: 20px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 8px;
+}
+
+.step {
+  position: relative;
+  padding: 14px 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-panel-hi);
+  cursor: pointer;
+  transition: all 180ms ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step:hover {
+  border-color: var(--tan);
+  background: var(--bg-base);
+  transform: translateX(2px);
+}
+
+.step.active {
+  border-color: var(--stamp);
+  border-left-width: 4px;
+  background: var(--bg-base);
+  box-shadow: 0 0 0 1px var(--stamp) inset;
+}
+
+.step.active .step-label { color: var(--manila); }
+
+.step-index {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--tan-soft);
+  text-transform: uppercase;
+}
+
+.step-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.step-func {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--tan);
+}
+
+/* Arrow between steps */
+.step::after {
+  content: "↓";
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--line-strong);
+  font-size: 14px;
+  font-family: var(--font-mono);
+  z-index: 1;
+}
+
+.step:last-child::after { content: none; }
+
+.step.active::after { color: var(--stamp); }
+
+/* ============================================================
+   Right pane — visualization
+============================================================ */
+.viz-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--manila);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.viz-subtitle {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+.viz-chart {
+  flex: 1;
+  min-height: 420px;
+  background: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+/* Plotly override — remove ugly default margins on our light chart background */
+.viz-chart .plotly .main-svg { background: transparent !important; }
+
+/* ============================================================
+   Footer
+============================================================ */
+.site-footer {
+  margin-top: 20px;
+  padding: 16px 24px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-panel);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.footer-label {
+  color: var(--tan-soft);
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+
+.site-footer a {
+  color: var(--tan);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--tan-soft);
+}
+
+.site-footer a:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ============================================================
+   Responsive — mobile breakdown
+============================================================ */
+@media (max-width: 1100px) {
+  .stage-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .pipeline-steps {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 16px;
+  }
+  .step { min-width: 200px; }
+  .step::after {
+    content: "→";
+    bottom: 50%;
+    left: auto;
+    right: -18px;
+    transform: translateY(50%);
+  }
+}
+
+@media (max-width: 640px) {
+  body { padding: 12px; }
+  .site-header {
+    grid-template-columns: 1fr;
+    padding: 16px 20px;
+  }
+  .brand-meta { text-align: left; }
+  .brand-title { font-size: 22px; }
+  .site-footer { grid-template-columns: 1fr; gap: 12px; }
+}

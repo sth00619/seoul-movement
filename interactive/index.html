@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reading Seoul Through Its Movement · Interactive Demo</title>
+  <meta name="description"
+        content="Interactive walkthrough of a Seoul urban mobility data pipeline — from raw API rows to clustered neighborhood archetypes." />
+
+  <!-- Plotly.js v3.6.0 — pinned CDN, no live server needed -->
+  <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-tag">FILE — SEOUL / 2026</span>
+      <h1 class="brand-title">Reading Seoul Through Its Movement</h1>
+      <p class="brand-sub">A pipeline walkthrough — from raw subway taps to clustered neighborhood archetypes.</p>
+    </div>
+    <div class="brand-meta">
+      <span class="meta-label">Classified:</span> <span class="meta-value">Public Data · Seoul Open Data Plaza</span><br />
+      <span class="meta-label">Records:</span> <span class="meta-value" id="meta-records">—</span><br />
+      <span class="meta-label">Generated:</span> <span class="meta-value" id="meta-generated">—</span>
+    </div>
+  </header>
+
+  <main class="stage-container">
+
+    <!-- LEFT PANE: raw data preview -->
+    <section class="pane pane-left" aria-labelledby="left-heading">
+      <div class="pane-header">
+        <h2 id="left-heading" class="pane-title">Data Preview</h2>
+        <div class="pane-badge" id="left-badge">Stage 0 · Raw</div>
+      </div>
+      <div class="pane-body">
+        <div class="data-meta" id="data-meta">—</div>
+        <div class="table-wrap">
+          <table class="data-table" id="data-table">
+            <thead><tr id="data-thead"></tr></thead>
+            <tbody id="data-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pane-footer">
+        <span class="pane-desc" id="stage-description">Choose a transformation to begin.</span>
+      </div>
+    </section>
+
+    <!-- MIDDLE PANE: transformation buttons -->
+    <section class="pane pane-middle" aria-labelledby="middle-heading">
+      <div class="pane-header">
+        <h2 id="middle-heading" class="pane-title">Pipeline</h2>
+        <div class="pane-badge">Click any step</div>
+      </div>
+
+      <ol class="pipeline-steps" id="pipeline-steps">
+        <!-- Populated by JS -->
+      </ol>
+
+      <div class="pane-footer pane-footer-hint">
+        <span class="hint">Each step is a real function in <code>src/</code>. Hover for the reason it matters.</span>
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: visualization -->
+    <section class="pane pane-right" aria-labelledby="right-heading">
+      <div class="pane-header">
+        <h2 id="right-heading" class="pane-title">Visualization</h2>
+        <div class="pane-badge" id="right-badge">Stage 0 · Raw</div>
+      </div>
+      <div class="pane-body pane-body-viz">
+        <div class="viz-title" id="viz-title">—</div>
+        <div class="viz-subtitle" id="viz-subtitle">—</div>
+        <div class="viz-chart" id="viz-chart"></div>
+      </div>
+      <div class="pane-footer">
+        <span class="pane-desc">Every chart is generated from the transformed table on the left, in the browser.</span>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-col">
+      <span class="footer-label">Repository</span>
+      <a href="https://github.com/sth00619/2026-Summer-Study" target="_blank" rel="noopener">github.com/sth00619/2026-Summer-Study</a>
+    </div>
+    <div class="footer-col">
+      <span class="footer-label">Stack</span>
+      <span>Python · pandas · scikit-learn · UMAP · Plotly.js</span>
+    </div>
+    <div class="footer-col">
+      <span class="footer-label">Deploy</span>
+      <span>GitHub Actions → GitHub Pages · fully static</span>
+    </div>
+  </footer>
+
+  <script src="js/pipeline.js"></script>
+</body>
+</html>

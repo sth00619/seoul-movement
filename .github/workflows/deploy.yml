@@ -1,0 +1,75 @@
+name: Build and Deploy Interactive Site
+
+# Triggers:
+#   - every push to main
+#   - manual dispatch from the Actions tab
+on:
+  push:
+    branches: [main]
+    paths:
+      - "interactive/**"
+      - "src/build_interactive.py"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+# Required permissions for GitHub Pages deployment via actions/deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time; queue additional pushes but don't cancel in-flight
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # NOTE: this step regenerates interactive/data/*.json from cached
+      # processed data. In this repo we ship the processed parquet files
+      # committed (they are tiny, ~a few MB total, and don't need API keys
+      # to rebuild the site). If they are missing, we fall back to mock data
+      # so the workflow never blocks on a missing key.
+      - name: Build interactive snapshots
+        run: |
+          if [ -f data/processed/features.parquet ]; then
+            python src/build_interactive.py --source processed
+          else
+            python src/build_interactive.py --source mock --seed 42
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # We deploy the interactive/ directory as the site root
+          path: interactive
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
