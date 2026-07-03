@@ -4,7 +4,7 @@
 
 **Guest lecture · Data Visualization and Business Analytics (MSc)** · 50 min + 10 min Q&A
 
-Live interactive demo → *(GitHub Pages URL will land here after deployment)*
+Live interactive demo → [*(GitHub Pages URL will land here after deployment)*(https://sth00619.github.io/seoul-movement/)
 Slide deck (PDF) → `slides/`
 Full pipeline notebook → `notebooks/data_pipeline.ipynb`
 
