@@ -250,6 +250,77 @@ def normalize_subway_daily(raw: pd.DataFrame) -> pd.DataFrame:
     return df[keep].sort_values(["station", "date"]).reset_index(drop=True)
 
 
+# ---------------------------------------------------------------------------
+# Stage 0.5 · Column distinctiveness — which of the 48 hour x direction
+# columns actually discriminate between stations, before we standardize
+# anything or engineer features from them.
+# ---------------------------------------------------------------------------
+
+
+def compute_column_distinctiveness(long: pd.DataFrame) -> pd.DataFrame:
+    """Rank the 48 (hour, direction) columns by how much they discriminate
+    between stations, using each column's coefficient of variation (CV)
+    across stations — computed on raw, pre-standardization values.
+
+    Why coefficient of variation, and not standardized variance
+    --------------------------------------------------------------
+    Z-score standardizing a column sets its variance to exactly 1 by
+    construction — every one of the 48 columns would tie at variance=1,
+    telling us nothing about which is more informative. CV instead
+    measures spread *relative to the column's own typical magnitude*:
+    a column where stations wildly disagree (e.g. the 08:00 boarding
+    count — packed at Gangnam, near-empty at Hongdae) scores high, while
+    a column where every station behaves similarly (e.g. 03:00 boarding
+    — near-zero everywhere) scores low, regardless of the two columns'
+    very different absolute scales.
+
+    This ranking is computed on the long tidy table (tens of thousands
+    of rows — 34,560 in the current 24-month window), which is exactly
+    the kind of row volume that makes eyeballing individual values
+    hopeless and makes a systematic, code-driven ranking worthwhile.
+
+    Parameters
+    ----------
+    long : DataFrame
+        Output of :func:`normalize_subway_hourly`. Must contain columns
+        ``station``, ``hour``, ``direction``, ``count``.
+
+    Returns
+    -------
+    DataFrame
+        One row per (hour, direction) column, sorted by CV descending.
+        Columns: ``hour``, ``direction``, ``column_label``, ``mean_riders``,
+        ``std_riders``, ``cv``, ``rank``, ``distinctive`` (top-8 flag).
+    """
+    # Collapse the 24-month window to one representative value per
+    # station x hour x direction cell (mean daily ridership at that hour).
+    station_hour = (
+        long.groupby(["station", "hour", "direction"])["count"]
+        .mean()
+        .reset_index()
+    )
+
+    rows = []
+    for (hour, direction), g in station_hour.groupby(["hour", "direction"]):
+        vals = g["count"].to_numpy(dtype=float)
+        mean = float(vals.mean())
+        std = float(vals.std())
+        cv = std / mean if mean > 0 else 0.0
+        rows.append({
+            "hour": int(hour),
+            "direction": direction,
+            "column_label": f"{hour:02d}:00 {direction}",
+            "mean_riders": round(mean, 1),
+            "std_riders": round(std, 1),
+            "cv": round(cv, 4),
+        })
+
+    out = pd.DataFrame(rows).sort_values("cv", ascending=False).reset_index(drop=True)
+    out["rank"] = out.index + 1
+    out["distinctive"] = out["rank"] <= 8   # top 8 of 48 columns flagged
+    return out
+
+
 def build_weekday_hour_matrix(
     long_hourly: pd.DataFrame,
     daily: pd.DataFrame,

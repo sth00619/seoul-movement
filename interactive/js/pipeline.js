@@ -16,6 +16,13 @@ const STEPS = [
     tooltip: "Fetch OA-12252 from Seoul Open Data (paginated, tenacity-retried). What comes back is wide, Korean-named, string-typed.",
   },
   {
+    stage_id: "standardized",
+    index_label: "STAGE 0.5",
+    label: "Rank distinctive columns",
+    func:  "groupby().mean()  ·  coefficient of variation",
+    tooltip: "34,560 raw rows collapse into 48 hour×direction columns. Coefficient of variation ranks which columns actually discriminate between stations — before any feature is hand-picked.",
+  },
+  {
     stage_id: "normalized",
     index_label: "STAGE 1",
     label: "Normalize schema",
@@ -116,6 +123,7 @@ function goToStage(stageId) {
   updateDescription(stage.description);
   renderTable(stage.preview);
   renderViz(stage.viz);
+  renderCode(stage);
 }
 
 function updateActiveStep(stageId) {
@@ -302,3 +310,70 @@ function hexToRgba(hex, alpha) {
   const b = parseInt(h.slice(4, 6), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// Code drawer — real source per stage, with color-coded line tags
+// ─────────────────────────────────────────────────────────────────────
+
+const TAG_LABELS = {
+  preprocessing:  "Preprocessing",
+  outlier:        "Outlier / Distinctiveness",
+  modeling:       "Modeling",
+  visualization:  "Visualization",
+};
+
+function renderCode(stage) {
+  const codeEl  = document.getElementById("code-content");
+  const notesEl = document.getElementById("code-notes");
+  const fileEl  = document.getElementById("code-toggle-file");
+
+  if (!stage.code) {
+    codeEl.textContent = "// No code snippet for this stage.";
+    notesEl.innerHTML = "";
+    fileEl.textContent = "—";
+    return;
+  }
+
+  fileEl.textContent = stage.source_file || "—";
+
+  // Let highlight.js tokenize the raw code first (syntax colors), then
+  // wrap the requested line ranges in a colored <span> for the tag overlay.
+  const highlighted = hljs.highlight(stage.code, { language: "python" }).value;
+  const lines = highlighted.split("\n");
+  const tags = stage.tags || [];
+
+  const taggedLines = lines.map((lineHtml, i) => {
+    const lineNo = i + 1;
+    const tag = tags.find(t => lineNo >= t.start && lineNo <= t.end);
+    const cls = tag ? `code-line tag-${tag.label}` : "code-line";
+    return `<span class="${cls}">${lineHtml || " "}</span>`;
+  });
+
+  codeEl.innerHTML = taggedLines.join("\n");
+  codeEl.className = "language-python hljs";
+
+  // Notes panel — one card per tag, in source order
+  notesEl.innerHTML = tags.map(t => `
+    <div class="code-note tag-${t.label}">
+      <span class="code-note-label">${TAG_LABELS[t.label] || t.label} · lines ${t.start}-${t.end}</span>
+      ${escapeHtml(t.note)}
+    </div>
+  `).join("");
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Code drawer toggle
+// ─────────────────────────────────────────────────────────────────────
+(function initCodeDrawer() {
+  const toggle = document.getElementById("code-drawer-toggle");
+  const body   = document.getElementById("code-drawer-body");
+  const icon   = document.getElementById("code-toggle-icon");
+  if (!toggle) return;
+
+  toggle.addEventListener("click", () => {
+    const isOpen = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+    body.hidden = isOpen;
+    icon.textContent = isOpen ? "▸" : "▾";
+  });
+})();

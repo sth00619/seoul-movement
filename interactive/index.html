@@ -10,6 +10,11 @@
   <!-- Plotly.js v3.6.0 — pinned CDN, no live server needed -->
   <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 
+  <!-- highlight.js v11.11.1 — pinned CDN, Python syntax highlighting for the code panel -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -87,10 +92,33 @@
 
   </main>
 
+  <!-- CODE DRAWER: full-width, collapsed by default. Shows the real source
+       behind whichever stage is selected, with color-coded line tags. -->
+  <section class="code-drawer" id="code-drawer" aria-labelledby="code-heading">
+    <button class="code-drawer-toggle" id="code-drawer-toggle" aria-expanded="false" aria-controls="code-drawer-body">
+      <span class="code-toggle-icon" id="code-toggle-icon">▸</span>
+      <span class="code-toggle-label">View the Code</span>
+      <span class="code-toggle-sub" id="code-toggle-sub">See exactly what runs at this stage</span>
+      <span class="code-toggle-file" id="code-toggle-file">—</span>
+    </button>
+    <div class="code-drawer-body" id="code-drawer-body" hidden>
+      <div class="code-legend">
+        <span class="legend-item"><span class="legend-swatch legend-preprocessing"></span>Preprocessing</span>
+        <span class="legend-item"><span class="legend-swatch legend-outlier"></span>Outlier / Distinctiveness Detection</span>
+        <span class="legend-item"><span class="legend-swatch legend-modeling"></span>Modeling</span>
+        <span class="legend-item"><span class="legend-swatch legend-visualization"></span>Visualization</span>
+      </div>
+      <div class="code-panes">
+        <pre class="code-block"><code class="language-python" id="code-content"></code></pre>
+        <div class="code-notes" id="code-notes"></div>
+      </div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <div class="footer-col">
       <span class="footer-label">Repository</span>
-      <a href="https://github.com/sth00619/2026-Summer-Study" target="_blank" rel="noopener">github.com/sth00619/2026-Summer-Study</a>
+      <a href="https://github.com/sth00619/seoul-movement" target="_blank" rel="noopener">github.com/sth00619/seoul-movement</a>
     </div>
     <div class="footer-col">
       <span class="footer-label">Stack</span>

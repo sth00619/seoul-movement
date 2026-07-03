@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-03T05:54:57Z",
+ "generated_at": "2026-07-03T12:02:44Z",
  "source": "mock",
  "n_months": 24,
  "stages": [
@@ -898,7 +898,291 @@
       "#8A8580"
      ]
     }
-   }
+   },
+   "code": "def fetch_subway_hourly(months, api_key=None, save_dir=None):\n    \"\"\"Fetch hourly subway ridership for a list of YYYYMM months.\"\"\"\n    all_rows = []\n    for yyyymm in months:\n        start = 1\n        while True:\n            end = start + SEOUL_PAGE_SIZE - 1\n            root = _seoul_get_page(api_key, yyyymm, start, end)\n            rows = root.get(\"row\", [])\n            all_rows.extend(rows)\n            total = int(root.get(\"list_total_count\", 0))\n            if end >= total or not rows:\n                break\n            start = end + 1\n    df = pd.DataFrame(all_rows)\n    df.attrs[\"source\"] = \"seoul_opendata:OA-12252:CardSubwayTime\"\n    return df\n\n# --- visualization ---\nfig.add_trace(go.Bar(\n    x=[\"ID columns\", \"Hourly columns\", \"Meta columns\"],\n    y=[n_id_cols, n_hour_cols, n_meta_cols],\n    marker_color=[\"#4A6FA5\", \"#C1272D\", \"#8A8580\"],\n))",
+   "language": "python",
+   "source_file": "src/ingest.py + build_interactive.py",
+   "tags": [
+    {
+     "start": 3,
+     "end": 13,
+     "label": "preprocessing",
+     "note": "Paginated ingestion — the API caps each call at 1,000 rows, so this loop keeps pulling pages until the full month is collected."
+    },
+    {
+     "start": 14,
+     "end": 16,
+     "label": "preprocessing",
+     "note": "Wraps the raw rows into a DataFrame, tagged with its source for the fact-check log."
+    },
+    {
+     "start": 20,
+     "end": 24,
+     "label": "visualization",
+     "note": "A single bar chart makes the 'wide table' problem visible before anything is even melted — 48 of 52 columns are one repeated pattern."
+    }
+   ]
+  },
+  {
+   "id": "standardized",
+   "label": "Rank distinctive columns",
+   "description": "34,560 raw rows collapse into 48 hour×direction columns. Coefficient of variation ranks which columns actually discriminate between stations, before any feature is hand-picked.",
+   "preview": {
+    "columns": [
+     "hour",
+     "direction",
+     "column_label",
+     "mean_riders",
+     "std_riders",
+     "cv",
+     "rank",
+     "distinctive"
+    ],
+    "rows": [
+     [
+      "1",
+      "board",
+      "01:00 board",
+      "23028.4",
+      "36816.8",
+      "1.599",
+      "1",
+      "True"
+     ],
+     [
+      "2",
+      "alight",
+      "02:00 alight",
+      "9780.4",
+      "15634.1",
+      "1.598",
+      "2",
+      "True"
+     ],
+     [
+      "1",
+      "alight",
+      "01:00 alight",
+      "23065.3",
+      "36861.8",
+      "1.598",
+      "3",
+      "True"
+     ],
+     [
+      "2",
+      "board",
+      "02:00 board",
+      "9782.8",
+      "15632.1",
+      "1.598",
+      "4",
+      "True"
+     ],
+     [
+      "0",
+      "alight",
+      "00:00 alight",
+      "46423.6",
+      "69063.4",
+      "1.488",
+      "5",
+      "True"
+     ],
+     [
+      "0",
+      "board",
+      "00:00 board",
+      "46577.0",
+      "69153.2",
+      "1.485",
+      "6",
+      "True"
+     ],
+     [
+      "23",
+      "board",
+      "23:00 board",
+      "76412.8",
+      "90959.1",
+      "1.19",
+      "7",
+      "True"
+     ],
+     [
+      "23",
+      "alight",
+      "23:00 alight",
+      "76463.4",
+      "90494.1",
+      "1.184",
+      "8",
+      "True"
+     ],
+     [
+      "7",
+      "board",
+      "07:00 board",
+      "168132.6",
+      "164559.4",
+      "0.979",
+      "9",
+      "False"
+     ],
+     [
+      "3",
+      "board",
+      "03:00 board",
+      "3980.2",
+      "3766.8",
+      "0.946",
+      "10",
+      "False"
+     ],
+     [
+      "3",
+      "alight",
+      "03:00 alight",
+      "3974.6",
+      "3742.2",
+      "0.942",
+      "11",
+      "False"
+     ],
+     [
+      "22",
+      "alight",
+      "22:00 alight",
+      "99088.7",
+      "92981.9",
+      "0.938",
+      "12",
+      "False"
+     ],
+     [
+      "22",
+      "board",
+      "22:00 board",
+      "98444.9",
+      "91881.7",
+      "0.933",
+      "13",
+      "False"
+     ],
+     [
+      "8",
+      "alight",
+      "08:00 alight",
+      "273786.7",
+      "234019.4",
+      "0.855",
+      "14",
+      "False"
+     ],
+     [
+      "4",
+      "alight",
+      "04:00 alight",
+      "6712.8",
+      "5469.4",
+      "0.815",
+      "15",
+      "False"
+     ]
+    ],
+    "total_rows": 48,
+    "total_cols": 8
+   },
+   "viz": {
+    "type": "bar",
+    "title": "Which of the 48 columns actually tells stations apart?",
+    "subtitle": "Coefficient of variation across stations, top 16 columns — red bars are the top 8 most distinctive",
+    "trace": {
+     "x": [
+      "01:00 board",
+      "02:00 alight",
+      "01:00 alight",
+      "02:00 board",
+      "00:00 alight",
+      "00:00 board",
+      "23:00 board",
+      "23:00 alight",
+      "07:00 board",
+      "03:00 board",
+      "03:00 alight",
+      "22:00 alight",
+      "22:00 board",
+      "08:00 alight",
+      "04:00 alight",
+      "04:00 board"
+     ],
+     "y": [
+      1.5988,
+      1.5985,
+      1.5982,
+      1.5979,
+      1.4877,
+      1.4847,
+      1.1904,
+      1.1835,
+      0.9787,
+      0.9464,
+      0.9415,
+      0.9384,
+      0.9333,
+      0.8548,
+      0.8148,
+      0.8129
+     ],
+     "colors": [
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#C1272D",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580",
+      "#8A8580"
+     ]
+    }
+   },
+   "code": "def compute_column_distinctiveness(long: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"Rank the 48 (hour, direction) columns by how much they\n    discriminate between stations, using coefficient of variation.\"\"\"\n    station_hour = (\n        long.groupby([\"station\", \"hour\", \"direction\"])[\"count\"]\n        .mean()\n        .reset_index()\n    )\n    rows = []\n    for (hour, direction), g in station_hour.groupby([\"hour\", \"direction\"]):\n        vals = g[\"count\"].to_numpy(dtype=float)\n        mean = float(vals.mean())\n        std = float(vals.std())\n        cv = std / mean if mean > 0 else 0.0\n        rows.append({\n            \"hour\": int(hour), \"direction\": direction,\n            \"column_label\": f\"{hour:02d}:00 {direction}\",\n            \"mean_riders\": round(mean, 1),\n            \"std_riders\": round(std, 1),\n            \"cv\": round(cv, 4),\n        })\n    out = pd.DataFrame(rows).sort_values(\"cv\", ascending=False)\n    out[\"rank\"] = range(1, len(out) + 1)\n    out[\"distinctive\"] = out[\"rank\"] <= 8\n    return out\n\n# --- visualization ---\nfig.add_trace(go.Bar(\n    x=[c[\"column_label\"] for c in ranked[:12]],\n    y=[c[\"cv\"] for c in ranked[:12]],\n    marker_color=[\"#C1272D\" if c[\"distinctive\"] else \"#8A8580\"\n                  for c in ranked[:12]],\n))",
+   "language": "python",
+   "source_file": "src/preprocess.py + build_interactive.py",
+   "tags": [
+    {
+     "start": 4,
+     "end": 8,
+     "label": "preprocessing",
+     "note": "Collapses 34,560 raw rows down to one mean value per station × hour × direction cell — the reduction that makes 48 columns comparable at all."
+    },
+    {
+     "start": 10,
+     "end": 19,
+     "label": "outlier",
+     "note": "Coefficient of variation, not standardized variance — z-scoring first would force every column's variance to exactly 1, hiding which columns actually differ."
+    },
+    {
+     "start": 20,
+     "end": 23,
+     "label": "outlier",
+     "note": "Ranks all 48 columns and flags the top 8 as statistically distinctive — this is the 'find the unusual column' step."
+    },
+    {
+     "start": 28,
+     "end": 33,
+     "label": "visualization",
+     "note": "plotly.graph_objects.Bar — the top 12 columns by CV, with the top-8 'distinctive' set highlighted in stamp red against muted gray for the rest."
+    }
+   ]
   },
   {
    "id": "normalized",
@@ -1230,7 +1514,36 @@
     ],
     "xaxis": "Hour of day",
     "yaxis": "Share of daily ridership (%)"
-   }
+   },
+   "code": "def normalize_subway_hourly(raw: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"Convert wide CardSubwayTime dataframe to a long tidy table.\"\"\"\n    df = raw.copy()\n    hour_cols = [c for c in df.columns if _HOUR_COL_RE.match(c)]\n    id_cols = [\"\\uc0ac\\uc6a9\\uc6d4\", \"\\ud638\\uc120\\uba85\", \"\\uc9c0\\ud558\\ucca0\\uc5ed\"]\n\n    long = df[id_cols + hour_cols].melt(\n        id_vars=id_cols, value_vars=hour_cols,\n        var_name=\"raw_col\", value_name=\"count\",\n    )\n    parsed = long[\"raw_col\"].str.extract(_HOUR_COL_RE)\n    parsed.columns = [\"hour_start\", \"hour_end\", \"direction_kr\"]\n    long[\"hour\"] = parsed[\"hour_start\"].astype(int)\n    long[\"direction\"] = parsed[\"direction_kr\"].map(_DIR_MAP)\n\n    long = long.rename(columns={\n        \"\\uc0ac\\uc6a9\\uc6d4\": \"year_month\", \"\\ud638\\uc120\\uba85\": \"line\", \"\\uc9c0\\ud558\\ucca0\\uc5ed\": \"station\",\n    })\n    long[\"year_month\"] = pd.to_datetime(long[\"year_month\"], format=\"%Y%m\")\n    long[\"count\"] = pd.to_numeric(long[\"count\"], errors=\"coerce\").fillna(0).astype(int)\n    long[\"station\"] = long[\"station\"].apply(_canonicalize_station_name)\n    return long[[\"year_month\", \"line\", \"station\", \"hour\", \"direction\", \"count\"]]\n\n# --- visualization ---\nfor stn in focus_stations:\n    by_hour = long[long.station == stn].groupby(\"hour\")[\"count\"].sum()\n    fig.add_trace(go.Scatter(\n        x=list(range(24)), y=(by_hour / by_hour.sum() * 100).tolist(),\n        mode=\"lines+markers\", name=STATION_EN[stn], line=dict(color=colors[stn]),\n    ))",
+   "language": "python",
+   "source_file": "src/preprocess.py + build_interactive.py",
+   "tags": [
+    {
+     "start": 4,
+     "end": 10,
+     "label": "preprocessing",
+     "note": "melt() pivots the 48 wide hour-columns into two tidy columns (hour, direction) — one observation per row."
+    },
+    {
+     "start": 11,
+     "end": 14,
+     "label": "preprocessing",
+     "note": "Regex-parses the Korean column name itself to recover the hour and direction it encodes."
+    },
+    {
+     "start": 16,
+     "end": 21,
+     "label": "preprocessing",
+     "note": "Renames to snake_case English, coerces types, and canonicalizes station names (strips parenthetical alternates)."
+    },
+    {
+     "start": 25,
+     "end": 30,
+     "label": "visualization",
+     "note": "Three overlaid line traces — one per focus station — sharing the same 0-24 hour x-axis, normalized to % of daily total so shape (not volume) is what's compared."
+    }
+   ]
   },
   {
    "id": "features",
@@ -1474,7 +1787,42 @@
       "color": "#4A6FA5"
      }
     ]
-   }
+   },
+   "code": "def compute_station_features(long: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"Compute the 6 features per station from the long ridership table.\"\"\"\n    tot = long.groupby([\"station\", \"hour\"], as_index=False)[\"count\"].sum()\n    features = []\n    for station, g in tot.groupby(\"station\"):\n        g = g.set_index(\"hour\").reindex(range(24), fill_value=0)\n        hourly = g[\"count\"].to_numpy()\n        total = hourly.sum()\n\n        f1 = hourly[MORNING_HOURS].max() / total if total else 0.0\n        f2 = hourly[EVENING_HOURS].max() / total if total else 0.0\n\n        evening_night = hourly[list(range(17, 24)) + [0, 1]].sum()\n        morning = hourly[MORNING_HOURS].sum()\n        f3 = evening_night / morning if morning else np.nan\n\n        f4 = hourly[LATE_NIGHT_HOURS].sum() / total if total else 0.0\n\n        peak = long[(long.station == station) & (long.hour.isin(MORNING_HOURS))]\n        by_dir = peak.groupby(\"direction\")[\"count\"].sum()\n        b, a = by_dir.get(\"board\", 0), by_dir.get(\"alight\", 0)\n        f5 = (a - b) / (a + b) if (a + b) else 0.0\n\n        f6 = hourly.std() / hourly.mean() if hourly.mean() else 0.0\n        features.append({\"station\": station, \"morning_peak_intensity\": f1,\n                         \"evening_peak_intensity\": f2, \"weekend_weekday_ratio\": f3,\n                         \"late_night_share\": f4, \"directional_asymmetry_peak\": f5,\n                         \"cv_hourly\": f6})\n    return pd.DataFrame(features).sort_values(\"station\")\n\n# --- visualization ---\nfor stn in focus:\n    vals = normed.loc[stn, feat_cols].tolist()\n    fig.add_trace(go.Scatterpolar(\n        r=vals + [vals[0]], theta=axes + [axes[0]],\n        fill=\"none\", line=dict(color=colors[stn], width=3),\n    ))",
+   "language": "python",
+   "source_file": "src/features.py + chart_functions.py",
+   "tags": [
+    {
+     "start": 3,
+     "end": 8,
+     "label": "preprocessing",
+     "note": "Reshapes per-station hourly totals into a fixed 24-length array so every station is directly comparable."
+    },
+    {
+     "start": 10,
+     "end": 19,
+     "label": "preprocessing",
+     "note": "Four of the six features are simple ratios of a time window to the daily total — deliberately dimensionless."
+    },
+    {
+     "start": 21,
+     "end": 24,
+     "label": "outlier",
+     "note": "The SIGNED directional asymmetry — this single sign flip is what separates business districts (alight-heavy, positive) from residential ones (board-heavy, negative)."
+    },
+    {
+     "start": 26,
+     "end": 26,
+     "label": "outlier",
+     "note": "Coefficient of variation of the full 24-hour curve — a station's own internal 'peakiness'."
+    },
+    {
+     "start": 32,
+     "end": 37,
+     "label": "visualization",
+     "note": "Scatterpolar with fill='none' — an earlier version used filled polygons, but nested shapes occluded each other; outlines stay visible even when one station's profile sits inside another's."
+    }
+   ]
   },
   {
    "id": "clustered",
@@ -1593,7 +1941,36 @@
       "#5A9E6F"
      ]
     }
-   }
+   },
+   "code": "def choose_k_and_cluster(features, k_range=(2, 8), random_state=42):\n    \"\"\"Standardize features, sweep k, pick the best, fit final KMeans.\"\"\"\n    X = features[FEATURE_ORDER].to_numpy(dtype=float)\n    scaler = StandardScaler()\n    X_scaled = scaler.fit_transform(X)\n\n    wcss, silh, models = {}, {}, {}\n    for k in range(k_range[0], k_range[1] + 1):\n        km = KMeans(n_clusters=k, random_state=random_state, n_init=10)\n        km.fit(X_scaled)\n        wcss[k] = float(km.inertia_)\n        silh[k] = float(silhouette_score(X_scaled, km.labels_))\n        models[k] = km\n\n    k_best = max(silh, key=silh.get)\n    km_best = models[k_best]\n    return ClusteringResult(labels=km_best.labels_, k_chosen=k_best,\n                            silhouette_by_k=silh, kmeans=km_best, scaler=scaler)\n\n# --- visualization ---\ncounts = labels_df[\"cluster_name\"].value_counts().sort_index()\nfig.add_trace(go.Bar(\n    x=counts.index.tolist(), y=counts.values.tolist(),\n    marker_color=[cluster_colors.get(n, \"#8A8580\") for n in counts.index],\n))",
+   "language": "python",
+   "source_file": "src/cluster.py + build_interactive.py",
+   "tags": [
+    {
+     "start": 3,
+     "end": 5,
+     "label": "preprocessing",
+     "note": "StandardScaler puts all 6 features on the same scale (mean 0, std 1) — without this, cv_hourly's larger raw range would dominate the distance metric."
+    },
+    {
+     "start": 7,
+     "end": 12,
+     "label": "modeling",
+     "note": "Sweeps every k from 2-8, fitting a full KMeans each time and scoring it — no k is assumed in advance."
+    },
+    {
+     "start": 14,
+     "end": 16,
+     "label": "modeling",
+     "note": "Silhouette score picks k automatically — the k with the best-separated clusters wins, not a guessed number."
+    },
+    {
+     "start": 21,
+     "end": 25,
+     "label": "visualization",
+     "note": "Bar height = how many stations landed in each archetype — the algorithm's own vote on how many 'kinds' of neighborhood exist."
+    }
+   ]
   },
   {
    "id": "projected",
@@ -1901,7 +2278,36 @@
     ],
     "xaxis": "UMAP 1",
     "yaxis": "UMAP 2"
-   }
+   },
+   "code": "def add_umap_embedding(result, features, n_neighbors=8, min_dist=0.15):\n    \"\"\"Project the 6D standardized space to 2D via UMAP.\"\"\"\n    X = features[FEATURE_ORDER].to_numpy(dtype=float)\n    X_scaled = result.scaler.transform(X)\n\n    reducer = umap.UMAP(\n        n_neighbors=min(n_neighbors, max(len(X_scaled) - 1, 2)),\n        min_dist=min_dist, n_components=2, random_state=42,\n    )\n    result.embedding_2d = reducer.fit_transform(X_scaled)\n    return result\n\n# --- visualization ---\nfor cid, cname in sorted(names.items()):\n    mask = labels == cid\n    fig.add_trace(go.Scatter(\n        x=embedding[mask, 0], y=embedding[mask, 1], mode=\"markers\",\n        marker=dict(color=cluster_colors[cname], size=15),\n    ))\nfig.update_layout(yaxis=dict(scaleanchor=\"x\", scaleratio=1))",
+   "language": "python",
+   "source_file": "src/cluster.py + chart_functions.py",
+   "tags": [
+    {
+     "start": 3,
+     "end": 4,
+     "label": "preprocessing",
+     "note": "Reuses the SAME fitted scaler from clustering — the 2D projection must sit in the identical standardized space the clusters were found in."
+    },
+    {
+     "start": 6,
+     "end": 10,
+     "label": "modeling",
+     "note": "UMAP preserves local neighborhood structure — points close in 6D stay close in 2D, unlike PCA which only preserves global variance."
+    },
+    {
+     "start": 14,
+     "end": 19,
+     "label": "visualization",
+     "note": "One trace per cluster so the legend and color are automatic — every station becomes one dot, colored by its KMeans label."
+    },
+    {
+     "start": 20,
+     "end": 20,
+     "label": "visualization",
+     "note": "scaleanchor locks the plot to a true 1:1 aspect ratio — UMAP's x/y only carry meaning as RELATIVE distances, so an unequal aspect would visually misstate how separated the clusters really are."
+    }
+   ]
   }
  ]
 }
